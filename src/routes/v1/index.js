@@ -1,0 +1,24 @@
+import express from 'express';
+import { jobRouter } from './jobRoute';
+import { complainRouter } from './complainRoute';
+import { contractRouter } from './contractRoute';
+import { candidateRouter } from './candidateRoute';
+import { authRouter } from './authRoute';
+import { userRouter } from './userRoute';
+import { interviewRouter } from './interviewerRoute';
+import { chatRouter } from './chatRoute';
+import { reviewRouter } from './reviewRoute';
+import { categoryRouter } from './categoryRoute';
+const Router = express.Router();
+
+Router.use('/auth', authRouter);
+Router.use('/jobs', jobRouter);
+Router.use('/complains', complainRouter);
+Router.use('/contracts', contractRouter);
+Router.use('/candidates', candidateRouter);
+Router.use('/users', userRouter);
+Router.use('/interviews', interviewRouter);
+Router.use('/chats', chatRouter);
+Router.use('/reviews', reviewRouter);
+Router.use('/categories', categoryRouter);
+export const APIs_V1 = Router;
