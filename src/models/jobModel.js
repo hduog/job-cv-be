@@ -144,7 +144,7 @@ const getListJobsByUser = async (reqQuery) => {
       find.jobLocation = reqQuery.workLocation;
     }
     if (reqQuery.idCategory) {
-      find.idCategory = ObjectId.createFromHexString(reqQuery.idCategory);
+      find.idCategory = { $in: reqQuery.idCategory.split(',').map((id) => ObjectId.createFromHexString(id)) };
     }
     const pipeline = [{ $match: { status: STATUS.ACTIVE } }, { $group: { _id: '$creatorId' } }];
 
@@ -216,7 +216,7 @@ const getListJobsByUser = async (reqQuery) => {
 };
 const getListJobsByAdmin = async (reqQuery) => {
   try {
-    const limit = parseInt(reqQuery?.limit) || 10 ;
+    const limit = parseInt(reqQuery?.limit) || 10;
     const skip = (parseInt(reqQuery?.page) - 1) * limit || 0;
     let jobs = await GET_DB()
       .collection(JOB_COLLECTION_NAME)
@@ -378,7 +378,6 @@ const getJobDetailsByUser = async (jobId) => {
         }
       ])
       .toArray();
-    console.log(jobs);
     return jobs[0];
   } catch (error) {
     throw new Error(error);

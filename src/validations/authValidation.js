@@ -5,7 +5,9 @@ import {
   EMAIL_RULE,
   EMAIL_RULE_MESSAGE,
   PASSWORD_RULE,
-  PASSWORD_RULE_MESSAGE
+  PASSWORD_RULE_MESSAGE,
+  OBJECT_ID_RULE,
+  OBJECT_ID_RULE_MESSAGE
 } from '~/utils/validators';
 import { ROLE_USER } from '~/utils/constants';
 
@@ -33,7 +35,10 @@ const createNew = async (req, res, next) => {
       is: ROLE_USER.JOB_SEEKER,
       then: Joi.string().required(),
       otherwise: Joi.forbidden()
-    })
+    }),
+    categories: Joi.array().items(
+      Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+    )
   });
 
   try {
