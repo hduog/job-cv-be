@@ -24,16 +24,33 @@ const JOB_COLLECTION_SCHEMA = Joi.object({
     .trim()
     .strict(),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  _destroy: Joi.boolean().default(false)
+  _destroy: Joi.boolean().default(false),
+  idCategory: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
 });
 const findOneById = async (id) => {
   try {
     const result = await GET_DB()
       .collection(JOB_COLLECTION_NAME)
-      .findOne({
-        _id: ObjectId.createFromHexString(id.toString())
-      });
-    return result;
+      .aggregate([
+        { $match: { _id: ObjectId.createFromHexString(id.toString()) } },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'idCategory',
+            foreignField: '_id',
+            as: 'categoryDetails'
+          }
+        },
+        {
+          $unwind: {
+            path: '$categoryDetails',
+            preserveNullAndEmptyArrays: true
+          }
+        }
+      ])
+      .toArray();
+
+    return result[0];
   } catch (error) {
     throw new Error(error);
   }
@@ -55,7 +72,8 @@ const createNew = async (data) => {
     const valiData = await validateBeforeCreate(data);
     const newJob = {
       ...valiData,
-      creatorId: ObjectId.createFromHexString(valiData.creatorId)
+      creatorId: ObjectId.createFromHexString(valiData.creatorId),
+      idCategory: ObjectId.createFromHexString(valiData.idCategory)
     };
     return await GET_DB().collection(JOB_COLLECTION_NAME).insertOne(newJob);
   } catch (error) {
@@ -71,6 +89,20 @@ const getlistJobs = async (user, reqQuery) => {
       .collection(JOB_COLLECTION_NAME)
       .aggregate([
         { $match: { creatorId: ObjectId.createFromHexString(user._id), _destroy: false } },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'idCategory',
+            foreignField: '_id',
+            as: 'categoryInfo'
+          }
+        },
+        {
+          $unwind: {
+            path: '$categoryInfo',
+            preserveNullAndEmptyArrays: true
+          }
+        },
         { $sort: { createdAt: -1 } },
         { $skip: skip },
         { $limit: limit }
@@ -111,6 +143,9 @@ const getListJobsByUser = async (reqQuery) => {
     if (reqQuery.workLocation) {
       find.jobLocation = reqQuery.workLocation;
     }
+    if (reqQuery.idCategory) {
+      find.idCategory = ObjectId.createFromHexString(reqQuery.idCategory);
+    }
     const pipeline = [{ $match: { status: STATUS.ACTIVE } }, { $group: { _id: '$creatorId' } }];
 
     const creatorIdsCursor = await GET_DB()
@@ -130,6 +165,20 @@ const getListJobsByUser = async (reqQuery) => {
             localField: 'creatorId',
             foreignField: '_id',
             as: 'employerInfo'
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'idCategory',
+            foreignField: '_id',
+            as: 'categoryInfo'
+          }
+        },
+        {
+          $unwind: {
+            path: '$categoryInfo',
+            preserveNullAndEmptyArrays: true
           }
         },
         {
@@ -167,7 +216,7 @@ const getListJobsByUser = async (reqQuery) => {
 };
 const getListJobsByAdmin = async (reqQuery) => {
   try {
-    const limit = parseInt(reqQuery?.limit) || 10;
+    const limit = parseInt(reqQuery?.limit) || 10 ;
     const skip = (parseInt(reqQuery?.page) - 1) * limit || 0;
     let jobs = await GET_DB()
       .collection(JOB_COLLECTION_NAME)
@@ -178,6 +227,20 @@ const getListJobsByAdmin = async (reqQuery) => {
             localField: 'creatorId',
             foreignField: '_id',
             as: 'employerInfo'
+          }
+        },
+        {
+          $lookup: {
+            from: 'categories',
+            localField: 'idCategory',
+            foreignField: '_id',
+            as: 'categoryInfo'
+          }
+        },
+        {
+          $unwind: {
+            path: '$categoryInfo',
+            preserveNullAndEmptyArrays: true
           }
         },
         {
@@ -315,6 +378,7 @@ const getJobDetailsByUser = async (jobId) => {
         }
       ])
       .toArray();
+    console.log(jobs);
     return jobs[0];
   } catch (error) {
     throw new Error(error);

@@ -13,8 +13,7 @@ const router = express.Router();
 
 router.post('/', authMiddleware.isAuthorized,
   authMiddleware.authorize([ROLE_USER.ADMIN]), createCategory);
-router.get('/', authMiddleware.isAuthorized,
-  authMiddleware.authorize([ROLE_USER.ADMIN]), getAllCategories);
+router.get('/', getAllCategories);
 router.get('/:id', authMiddleware.isAuthorized,
   authMiddleware.authorize([ROLE_USER.ADMIN]), getCategoryById);
 router.put('/:id', authMiddleware.isAuthorized,

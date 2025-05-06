@@ -18,7 +18,8 @@ const createNew = async (req, res, next) => {
       .min(3)
       .max(50)
       .trim()
-      .strict()
+      .strict(),
+    idCategory: Joi.string().required().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
   });
 
   try {

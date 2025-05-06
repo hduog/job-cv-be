@@ -48,7 +48,10 @@ const createNew = async (req, res, next) => {
       is: ROLE_USER.INTERVIEER,
       then: Joi.required(),
       otherwise: Joi.optional()
-    })
+    }),
+    categories: Joi.array().items(
+      Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE)
+    )
   });
 
   try {

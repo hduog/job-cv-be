@@ -50,7 +50,8 @@ const shemaValidation = {
   }),
   status: Joi.string().valid(STATUS.ACTIVE, STATUS.INACTIVE).default(STATUS.ACTIVE),
   createdAt: Joi.date().timestamp('javascript').default(Date.now),
-  _destroy: Joi.boolean().default(false)
+  _destroy: Joi.boolean().default(false),
+  categories: Joi.array().items(Joi.string().pattern(OBJECT_ID_RULE).message(OBJECT_ID_RULE_MESSAGE))
 };
 let USER_COLLECTION_SCHEMA = Joi.object(shemaValidation);
 
@@ -61,14 +62,25 @@ const findOneById = async (id) => {
   try {
     const result = await GET_DB()
       .collection(USER_COLLECTION_NAME)
-      .findOne(
+      .aggregate([
+        { $match: { _id: ObjectId.createFromHexString(id.toString()) } },
         {
-          _id: ObjectId.createFromHexString(id.toString())
+          $lookup: {
+            from: 'categories',
+            localField: 'categories',
+            foreignField: '_id',
+            as: 'categoriesDetails'
+          }
         },
-        { projection: { password: 0 } }
-      );
+        {
+          $project: {
+            password: 0
+          }
+        }
+      ])
+      .toArray();
 
-    return result;
+    return result[0];
   } catch (error) {
     throw new Error(error);
   }
