@@ -25,6 +25,7 @@ export const pickUser = (user) => {
     'desiredSalary',
     'companyName',
     'employerId',
-    'education'
+    'education',
+    'categories'
   ]);
 };
