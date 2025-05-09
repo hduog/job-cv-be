@@ -128,12 +128,13 @@ const getlistJobs = async (user, reqQuery) => {
   }
 };
 
-const getListJobsByUser = async (reqQuery) => {
+const getListJobsByUser = async (reqQuery, user) => {
   try {
     const find = {
       _destroy: false,
       status: STATUS.ACCEPT
     };
+
     if (reqQuery.skills) {
       find.requirements = { $all: reqQuery.skills.split(',') };
     }
@@ -146,6 +147,27 @@ const getListJobsByUser = async (reqQuery) => {
     if (reqQuery.idCategory) {
       find.idCategory = { $in: reqQuery.idCategory.split(',').map((id) => ObjectId.createFromHexString(id)) };
     }
+    if (reqQuery.keyword) {
+      const keywordRegex = new RegExp(reqQuery.keyword, 'i');
+      find.$or = [
+        { jobLocation: keywordRegex },
+        { skills: keywordRegex },
+        { salary: { $regex: keywordRegex } },
+        { benefit: keywordRegex },
+        { position: keywordRegex },
+        { 'categoryInfo.name': keywordRegex }
+      ];
+    }
+
+    if (user && reqQuery.isRelated) {
+      const userData = await GET_DB()
+        .collection(userModel.USER_COLLECTION_NAME)
+        .findOne({ _id: ObjectId.createFromHexString(user?._id) });
+      if (userData && userData.categories) {
+        find.idCategory = { $in: userData.categories.map((id) => ObjectId.createFromHexString(id)) };
+      }
+    }
+
     const pipeline = [{ $match: { status: STATUS.ACTIVE } }, { $group: { _id: '$creatorId' } }];
 
     const creatorIdsCursor = await GET_DB()

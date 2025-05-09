@@ -25,6 +25,15 @@ const getListJobsByUser = async (req, res, next) => {
     next(error);
   }
 };
+
+const getListJobsRelated = async (req, res, next) => {
+  try {
+    const result = await jobService.getListJobsRelated(req.jwtDecoded, req.query);
+    res.status(StatusCodes.OK).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
 const getListJobsByAdmin = async (req, res, next) => {
   try {
     const result = await jobService.getListJobsByAdmin(req.query);
@@ -80,6 +89,7 @@ export const jobController = {
   createNew,
   getlistJobs,
   getListJobsByUser,
+  getListJobsRelated,
   getListJobsByAdmin,
   changStatus,
   deleteJob,

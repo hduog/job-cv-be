@@ -35,6 +35,10 @@ Router.route('/delete/:id').delete(
   jobController.deleteJob
 );
 Router.route('/user/list-jobs').get(jobController.getListJobsByUser);
+Router.route('/user/related-jobs').get(
+  authMiddleware.isAuthorized,
+  authMiddleware.authorize([ROLE_USER.JOB_SEEKER]),
+  jobController.getListJobsRelated);
 
 Router.route('/details/:id').get(
   authMiddleware.isAuthorized,
