@@ -32,7 +32,6 @@ const START_SERVER = () => {
   io.on('connection', (socket) => {
     chatSocket(socket);
   });
-  console.log(env.APP_PORT, env.APP_HOST)
   server.listen(env.APP_PORT, env.APP_HOST, () => {
     console.log(`Running at ${env.APP_HOST}:${env.APP_PORT}/`);
   });
@@ -44,8 +43,8 @@ const START_SERVER = () => {
   try {
     await CONNECT_DB();
     console.log('Connected to MongoDB Cloud Atlas !');
-    // await CONNECT_ES();
-    // console.log('Connect to ES !');
+    await CONNECT_ES();
+    console.log('Connect to ES !');
     START_SERVER();
   } catch (error) {
     process.exit(0);
